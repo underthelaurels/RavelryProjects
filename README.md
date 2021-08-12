@@ -7,8 +7,10 @@ Current dependencies - python requests. ("python3 -m pip install requests" to in
 <br />
 
 ## Stash Organizer [WIP]
-Data visualization of yarn stash. Sortable and filterable.
-Currently collects data from Ravelry and parses and prints out basic stash information. I have added an example config file if you would like to try it out on your on your own machine! You can request api tokens at https://www.ravelry.com/pro/developer
+Data visualization of your yarn stash. Sortable and filterable.
+Currently collects data from Ravelry and parses and prints out basic stash information. 
+You can also dump the stash information as stash_dump.json, weight_dump.json, and color_dump.json by changing "org = StashOrganizer(0)" in stashOrganizer.py to "org = StashOrganizer(1)". 
+I have added an example config file if you would like to try it out on your on your own machine! You can request Ravelry api tokens at https://www.ravelry.com/pro/developer
 
 <br />
 
