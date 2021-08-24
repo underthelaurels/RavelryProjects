@@ -11,7 +11,8 @@ To use:<p>
 3. Create a 'config.json' file using the provided 'config_example.json' file as a guide. (Note: the file must be in the same directory as 'stashOrganizer.py')
 4. Install all needed python packages with `pip install -r requirements.txt`
 5. run `python3 runStashOrg.py` to get started! You can also use the `--help` or `-h` flags to get a better rundown of the features
-Have fun!
+Have fun!<p>
+Pro Tip: To decrease loading times for multiple runs, output your stash data to .json files with the `--dump` or `-d` flags.
 
 <br />
 
