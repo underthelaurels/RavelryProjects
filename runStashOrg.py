@@ -1,7 +1,7 @@
 import argparse
 from stashOrganizer import *
 
-parser = argparse.ArgumentParser(description="Outputs stash information from a logged in user to a file ('Stash_Output.py'). Default is outputting all information.")
+parser = argparse.ArgumentParser(description="Outputs stash information from a logged in user to a file ('Stash_Output.txt'). Default is outputting all information.")
 
 parser.add_argument("-f", "--fetch", action="store_true", help="fetch and update stash data from Ravelry")
 parser.add_argument("-d", "--dump", action="store_true", help="dump all stash data to json files in pretty json format")

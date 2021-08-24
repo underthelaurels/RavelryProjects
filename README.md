@@ -17,7 +17,7 @@ Pro Tip: To decrease loading times for multiple runs, output your stash data to 
 <br />
 
 ## Scrap Tagger [Not Started]
-Auto tags stash yarn as scraps if the leftovers from a project are deemed as scrap. Adds scrap yarn automatically to a selected scrap project in the queue.
+Adds scrap yarn automatically to a selected scrap project in the queue.
 
 <br />
 
