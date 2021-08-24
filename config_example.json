@@ -1,11 +1,7 @@
 {
-    "readOnly": {
-        "user":"read-User_api_key",
-        "pass":"api_key_password"
-    },
     "personal": {
         "user":"user_specific_api_key",
-        "pass":"use_api_key_password"
+        "pass":"user_api_key_password"
     },
     "person":"ravelry_username"
 }

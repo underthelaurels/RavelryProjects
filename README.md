@@ -4,10 +4,14 @@ Small projects using the Ravelry API to improve personal use of Ravelry as well 
 <br />
 
 ## Stash Organizer [WIP]
-Data visualization of your yarn stash. Sortable and filterable. <p>
-Currently collects data from Ravelry and parses and prints out basic stash information. <p>
-You can also dump the stash information into several files as stash_dump.json, weight_dump.json, and color_dump.json by changing "org = StashOrganizer(0)" in stashOrganizer.py to "org = StashOrganizer(1)". <p>
-I have added an example config file if you would like to try it out on your on your own machine! You can request Ravelry api tokens at https://www.ravelry.com/pro/developer
+Data visualization of your yarn stash. Sortable and filterable (not yet implemented). Assumption is that you have a Ravelry account and have your yarn logged in the stash feature.<p><p>
+To use:<p>
+1. Download the repository on your personal machine
+2. Request a Basic Auth, personal Ravelry API token at https://www.ravelry.com/pro/developer
+3. Create a 'config.json' file using the provided 'config_example.json' file as a guide. (Note: the file must be in the same directory as 'stashOrganizer.py')
+4. Install all needed python packages with `pip install -r requirements.txt`
+5. run `python3 runStashOrg.py` to get started! You can also use the `--help` or `-h` flags to get a better rundown of the features
+Have fun!
 
 <br />
 
