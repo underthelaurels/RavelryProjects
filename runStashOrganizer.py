@@ -1,6 +1,5 @@
 import argparse
-from stashOrganizer import *
-from dataDisplayer import *
+from StashOrganizer import stashOrganizer, dataDisplayer
 
 parser = argparse.ArgumentParser(
     description='''Outputs stash information from a logged in user to a text file
@@ -27,25 +26,24 @@ parser.add_argument("output_type", default="text", nargs='?',
 
 args = parser.parse_args()
 
-org = StashOrganizer(args.dump, args.update)
-disp = DataDisplayer()
+org = stashOrganizer.StashOrganizer(args.dump, args.update)
 
 # Sends data to output as a text file
 if args.output_type in {'text', 't'}:
     basic = org.calcBasicInfo()
     main = org.calcMainAmounts()
     scrap = org.calcScrapAmounts()
-    disp.outputTextToFile(args.info_type, basic, main, scrap)
+    dataDisplayer.outputTextToFile(args.info_type, basic, main, scrap)
 # Sends data to output as a chart pdf
 elif args.output_type in {'chart', 'charts', 'c'}:
     basic = org.calcBasicInfo()
     main = org.calcMainAmounts()
     scrap = org.calcScrapAmounts()
-    disp.outputChartsToFile(args.info_type, basic, main, scrap)
+    dataDisplayer.outputChartsToFile(args.info_type, basic, main, scrap)
 # Sends data to output as both a text file and a chart pdf
 elif args.output_type in {'both', 'b', 'all'}:
     basic = org.calcBasicInfo()
     main = org.calcMainAmounts()
     scrap = org.calcScrapAmounts()
-    disp.outputTextToFile(args.info_type, basic, main, scrap)
-    disp.outputChartsToFile(args.info_type, basic, main, scrap)
+    dataDisplayer.outputTextToFile(args.info_type, basic, main, scrap)
+    dataDisplayer.outputChartsToFile(args.info_type, basic, main, scrap)

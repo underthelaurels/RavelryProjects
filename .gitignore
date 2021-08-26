@@ -4,4 +4,4 @@ weight_dump.json
 color_dump.json
 TODO.txt
 *Output*
-/__pycache__
+*__pycache__
