@@ -3,4 +3,5 @@ stash_dump.json
 weight_dump.json
 color_dump.json
 TODO.txt
-Stash_Output.txt
+*Output*
+/__pycache__

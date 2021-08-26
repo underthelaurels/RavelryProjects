@@ -4,7 +4,7 @@ Small projects using the Ravelry API to improve personal use of Ravelry as well 
 <br />
 
 ## Stash Organizer [WIP]
-Data visualization of your yarn stash. Sortable and filterable (not yet implemented). Assumption is that you have a Ravelry account and have your yarn logged in the stash feature.<p><p>
+Data visualization of your yarn stash either in a text file or as pdf charts. Sortable and filterable (not yet implemented). Assumption is that you have a Ravelry account and have your yarn logged in the stash feature.<p><p>
 To use:<p>
 1. Download the repository on your personal machine
 2. Request a Basic Auth, personal Ravelry API token at https://www.ravelry.com/pro/developer

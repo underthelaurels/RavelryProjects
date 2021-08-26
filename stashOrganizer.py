@@ -1,187 +1,175 @@
 import json
 from os import path
-from types import TracebackType
 from typing import DefaultDict
 import requests
-
 import progressbar
 
+'''
+    This class imports and processes stash data from Ravelry
+'''
 class StashOrganizer:
-
     def __init__(self, dump, update):
-        # import the json and store username and password
+        # import the config file and store username and password
         with open('config.json') as jsonFile:
             data = json.load(jsonFile)
             self.username = data['personal']['user']
             self.password = data['personal']['pass']
             self.person = data['person']
 
-        # fetch all the stash data
+        # fetch all the stash data from Ravelry or a json file
         self.stash = self.fetchStash(update)
-        self.scraps, self.usable = self.getScrapUsableLists()
+        # seperate the scraps from the rest of the stash (ie, main stash)
+        self.scraps, self.main = self.getScrapMainLists()
 
+        # Output raw ravelry stash data, color families, and yarn weights to json files
         if dump:
             self.colors = self.fetchColorfams()
             self.weights = self.fetchYarnWeights()
             self.prettyDump('all')
+            print("Dumped raw ravelry stash data, colors, and weights to .json")
 
-    ###
-    ### Fetch functions for getting Ravelry data
-    ### 
-
+    '''
+        Fetch functions for getting Ravelry data
+    '''
     def fetchStash(self, update):
         # Update stash from Ravelry if dump file doesn't exist
         if update or not path.exists('stash_dump.json'):
             print('Getting stash from Ravelry...')
-            # Fetch personal stash data from Ravelry
+            # Send GET request to Ravelry for small stash list
             baseUrl = 'https://api.ravelry.com/people/' + self.person + '/stash/'
             params = {'sort': 'weight'}
-            response = requests.get(baseUrl + 'list.json', auth=(self.username, self.password), params=params)
+            response = requests.get(
+                baseUrl + 'list.json', auth=(self.username, self.password), params=params)
             smallStash = response.json()['stash']
 
             fullStash = '['
-            # Get full stash list
+            # Get full stash list using the IDs from the small stash list
+            # Show the user a progress bar to help with the wait
             with progressbar.ProgressBar(max_value=len(smallStash)) as bar:
                 for stashItem in smallStash:
-                    # Get the stash ID and use it to call API stash/show
-                    response = requests.get(baseUrl + str(stashItem['id']) + '.json', auth=(self.username, self.password))
+                    # Get the stash ID and use it to call GET stash/show on API
+                    response = requests.get(
+                        baseUrl + str(stashItem['id']) + '.json', auth=(self.username, self.password))
                     fullStash += json.dumps(response.json()['stash']) + ','
                     bar.update(smallStash.index(stashItem))
-            
-            fullStash = fullStash[:-1] +']'
+
+            fullStash = fullStash[:-1] + ']'
+            # Load the resulting stash list and return it
             return json.loads(fullStash)
         else:
+            # Skip calling to Ravelry and pull data from dump file instead
             with open('stash_dump.json') as jsonFile:
                 stash = json.load(jsonFile)
             return stash
 
     def fetchColorfams(self):
-        # Only get colors from Ravelry if dump file doesn't exist
+        # Only get colors family list from Ravelry if dump file doesn't exist
         if (path.exists('color_dump.json')):
             with open('color_dump.json') as jsonFile:
                 data = json.load(jsonFile)
+            return data
         else:
-            # Get the list of color families from Ravelry
+            # GET the list of color families from Ravelry
             url = 'https://api.ravelry.com/color_families.json'
             response = requests.get(url, auth=(self.username, self.password))
-            data = response.json()['color_families']
-        return data
-    
+            return response.json()['color_families']
+
     def fetchYarnWeights(self):
         # Only get weights from Ravelry if dump file doesn't exist
         if (path.exists('weight_dump.json')):
             with open('weight_dump.json') as jsonFile:
-                data = json.load(jsonFile)
+                return json.load(jsonFile)
         else:
-            # Get the list of yarn weights from Ravelry
+            # GET the list of yarn weights from Ravelry
             url = 'https://api.ravelry.com/yarn_weights.json'
             response = requests.get(url, auth=(self.username, self.password))
-            data = response.json()['yarn_weights']
-        return data
+            return response.json()['yarn_weights']
 
-    ###
-    ### Functions to manipulate and display stash data
-    ###
-
+    '''
+        Counts generic stash stuff and returns a list of info
+    '''
     def calcBasicInfo(self):
         # we countin
-        usableCount = 0
+        mainCount = 0
         usedCount = 0
         giftedCount = 0
         washableCount = 0
 
         for stashItem in self.stash:
-            itemColor = stashItem['color_family_name']
-            itemWeight = stashItem['yarn_weight_name']
             # checking yarn statuses and adding to counts
-            if stashItem['stash_status']['id'] == 1 and stashItem in self.usable:
+            if stashItem['stash_status']['id'] == 1 and stashItem in self.main:
                 # counting how many in stash yarns are washable
                 if 'yarn' in stashItem and stashItem['yarn']['machine_washable']:
                     washableCount += 1
-                usableCount += 1                
+                mainCount += 1
             elif stashItem['stash_status']['id'] == 2:
                 usedCount += 1
             elif stashItem['stash_status']['id'] == 4:
                 giftedCount += 1
-                
-        
-        output = 'Basic Stash Info -'
 
-        # output the stash status counts
-        output += '\n\tTotal stash items: ' + str(len(self.stash))
-        output += '\n\tUsable: ' + str(usableCount)
-        output += '\n\tScraps: ' + str(len(self.scraps))
-        output += '\n\tUsed up: ' + str(usedCount)
-        output += '\n\tGifted: ' + str(giftedCount)
-        output += '\n\tMachine Washable: ' + str(washableCount) + '/' + str(usableCount) + ' yarns'
-        
-        return output + '\n\n\n'
+        info = [
+            len(self.stash),
+            mainCount,
+            len(self.scraps),
+            usedCount,
+            giftedCount,
+            washableCount
+        ]
+        return info
 
-
-    def calcUsableAmounts(self):
+    '''
+        Calculates yardage, grams and stash item counts for
+        each color family and yarn weight located in the main stash.
+        Returns a list of information
+    '''
+    def calcMainAmounts(self):
         colorCounts = DefaultDict(int)
         weightCounts = DefaultDict(int)
 
         yardTotal = 0
+        yardsByColor = DefaultDict(float)
         yardsByWeight = DefaultDict(float)
-        yardByColor = DefaultDict(float)
 
         gramsTotal = 0
-        gramsByWeight = DefaultDict(float)
         gramsByColor = DefaultDict(float)
+        gramsByWeight = DefaultDict(float)
 
-        for stashItem in self.usable:
-            itemWeight = stashItem['yarn_weight_name']
+        for stashItem in self.main:
             itemColor = stashItem['color_family_name']
+            itemWeight = stashItem['yarn_weight_name']
             itemGrams = stashItem['packs'][1]['total_grams']
             itemYards = stashItem['packs'][1]['total_yards']
 
-            colorCounts[itemColor] += 1
+            colorCounts[str(itemColor)] += 1
             weightCounts[itemWeight] += 1
 
-            if itemYards is not None and itemColor is not None:
+            if itemYards is not None:
                 yardTotal += itemYards
+                yardsByColor[str(itemColor)] += itemYards
                 yardsByWeight[itemWeight] += itemYards
-                yardByColor[itemColor] += itemYards
 
-            if itemGrams is not None and itemColor is not None:
+            if itemGrams is not None:
                 gramsTotal += itemGrams
+                gramsByColor[str(itemColor)] += itemGrams
                 gramsByWeight[itemWeight] += itemGrams
-                gramsByColor[itemColor] += itemGrams
-        
-        # Format for printing/exporting
-        output = 'Usable Yarn Amounts -'
-        
-        output += '\n\tTotal Grams/Yardages: ' + '{:>6.0f} g,{:>6.0f} yds'.format(gramsTotal, yardTotal)
-        output += '\n\n\tYarns/Grams/Yardages by Color:'
-        for color in sorted(gramsByColor, key=gramsByColor.get, reverse=True):
-            s = '\n\t\t{:<14}-{:>4} yarns,{:>6.0f} g,{:>6.0f} yds'
-            output += s.format(color, colorCounts[color], gramsByColor[color], yardByColor[color])
 
-        output += '\n\n\tYarns/Grams/Yardages by Weight:'
-        for weight in gramsByWeight:
-            s = '\n\t\t{:<16}-{:>4} yarns,{:>6.0f} g,{:>6.0f} yds'
-            output += s.format(weight, weightCounts[weight], gramsByWeight[weight], yardsByWeight[weight])
+        amounts = [
+            colorCounts,
+            weightCounts,
+            yardTotal,
+            yardsByColor,
+            yardsByWeight,
+            gramsTotal,
+            gramsByColor,
+            gramsByWeight
+        ]
+        return amounts
 
-        return output + '\n\n\n'
-
-    def getScrapUsableLists(self):
-        scrapList = []
-        usableList = []
-        # return a list of stash items considered 'scraps' (<25g of yarn and In Stash)
-        # and return a list of stash items considered 'usable' (>= 25g of yarn and In Stash)
-        for stashItem in self.stash:
-            #Check if in stash
-            if stashItem['stash_status']['id'] == 1:
-                # check if < 25g of yarn
-                if (stashItem['packs'][1]['total_grams'] is not None and
-                        stashItem['packs'][1]['total_yards'] is not None and
-                        stashItem['packs'][1]['total_grams'] < 25):
-                    scrapList.append(stashItem)
-                else:
-                    usableList.append(stashItem)
-        return scrapList, usableList
-
+    '''
+        Calculates yardage info and stash item counts for
+        each color family and yarn weight located in the scrap stash.
+        Returns a list of information
+    '''
     def calcScrapAmounts(self):
         colorCounts = DefaultDict(int)
         weightCounts = DefaultDict(int)
@@ -189,7 +177,7 @@ class StashOrganizer:
         yardTotals = 0
         yardsByColor = DefaultDict(float)
         yardsByWeight = DefaultDict(float)
-        
+
         for stashItem in self.scraps:
             colorCounts[stashItem['color_family_name']] += 1
             weightCounts[stashItem['yarn_weight_name']] += 1
@@ -199,27 +187,49 @@ class StashOrganizer:
             yardTotals += itemYards
             yardsByColor[stashItem['color_family_name']] += itemYards
             yardsByWeight[stashItem['yarn_weight_name']] += itemYards
-        
-        # Format for printing/exporting
-        output = 'Scrap Information -'
-        output += '\n\tTotal Yardage: {:.1f} yds'.format(yardTotals)
-        output += '\n\n\tYardage by Color:'
-        for color in sorted(yardsByColor, key=yardsByColor.get, reverse=True):
-            output += '\n\t\t{:<14}-{:>8.1f} yds'.format(str(color), yardsByColor[color])
-        output += '\n\n\tYardage by Weight:'
-        for weight in yardsByWeight:
-            output += '\n\t\t{:<16}-{:>8.1f} yds'.format(weight, yardsByWeight[weight])
-        
-        return output + '\n\n\n'
 
+        amounts = [
+            colorCounts,
+            weightCounts,
+            yardTotals,
+            yardsByColor,
+            yardsByWeight
+        ]
+        return amounts
 
+    '''
+        Returns 2 lists of stash items - one of the stash scraps and
+        one of the main stash
+    '''
+    def getScrapMainLists(self):
+        scrapList = []
+        mainList = []
+        # return a list of stash items considered 'scraps' (<25g of yarn and In Stash)
+        # and return a list of stash items considered 'non-scrap' or 'main' yarn (>= 25g of yarn and In Stash)
+        for stashItem in self.stash:
+            # Check if listed as in stash
+            if stashItem['stash_status']['id'] == 1:
+                # check if less than 25g of yarn
+                if (stashItem['packs'][1]['total_grams'] is not None and
+                        stashItem['packs'][1]['total_yards'] is not None and
+                        stashItem['packs'][1]['total_grams'] < 25):
+                    scrapList.append(stashItem)
+                else:
+                    mainList.append(stashItem)
+        return scrapList, mainList
+
+    '''
+        Helper to dump stored Ravelry data to json files
+        Useful when running the script multiple times, since
+        storing the data locally is faster than calling the Ravelry API 
+    '''
     def prettyDump(self, type):
         if type == 'stash' or type == 'all':
             with open('stash_dump.json', 'w') as writeFile:
                 json.dump(self.stash, writeFile, indent=4)
-        elif type == 'colors' or type == 'all':
+        if type == 'colors' or type == 'all':
             with open('color_dump.json', 'w') as writeFile:
                 json.dump(self.colors, writeFile, indent=4)
-        elif type == 'weights' or type == 'all':
+        if type == 'weights' or type == 'all':
             with open('weight_dump.json', 'w') as writeFile:
                 json.dump(self.weights, writeFile, indent=4)

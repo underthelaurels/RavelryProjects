@@ -1,58 +1,43 @@
 import argparse
 from stashOrganizer import *
+from dataDisplayer import *
 
-parser = argparse.ArgumentParser(description="Outputs stash information from a logged in user to a file ('Stash_Output.txt'). Default is outputting all information.")
+parser = argparse.ArgumentParser(
+    description='''Outputs stash information from a logged in user to a text file
+    ('Stash_Output.txt') or to a chart file ('Stash_Output.pdf').
+    Default is outputting all information types to a text file.'''
+)
 
-parser.add_argument("-f", "--fetch", action="store_true", help="fetch and update stash data from Ravelry")
-parser.add_argument("-d", "--dump", action="store_true", help="dump all stash data to json files in pretty json format")
-parser.add_argument("-b", "--basic", action="store_true", help="output basic information about your stash")
-parser.add_argument("-u", "--usable", action="store_true", help="output 'usable' yarn information (all yarn in stash over 25g)")
-parser.add_argument("-s", "--scrap", action="store_true", help="output 'scrap' yarn information (all yarn in stash under 25g)")
-parser.add_argument("-a", "--all", action="store_true", help="output all available stash information")
-
+# Argument declarations for the Command Line Interface
+parser.add_argument("-u", "--update", action="store_true",
+                    default=False, help="update stash data from Ravelry")
+parser.add_argument("-d", "--dump", action="store_true", default=False,
+                    help='''dump all stash data to json files in pretty json format''')
+parser.add_argument("info_type", default="all", nargs='?',
+                    help='''The type of stash info to output. Can either be 
+                    "basic"/"b", "scrap"/"s", "main"/"m", or "all"/"a". 
+                    "basic" outputs basic info about your stash. 
+                    "scrap" outputs info about yarn in stash under 25g. 
+                    "main" outputs info about yarn over 25g. 
+                    "all" outputs all info about your stash.''')
+parser.add_argument("output_type", default="text", nargs='?',
+                    help='''the output type for the data - can either be "text" or "chart". 
+                    Can also be shortened to "t" or "c"''')
 
 args = parser.parse_args()
 
-dump = False
-update = False
+org = StashOrganizer(args.dump, args.update)
+disp = DataDisplayer()
 
-if args.dump:
-    dump = args.dump
-if args.fetch:
-    update = args.fetch
-
-org = StashOrganizer(dump, update)
-
-with open('Stash_Output.txt', 'w') as writeFile:
-    writeFile.write(str(org.person + '\'s Stash\n').upper())
-    writeFile.write('\n(Note: SCRAP items are leftover bits of yarn with less than 25 grams left,\n'
-                    '\t USABLE items are yarns with more than 25 grams in stash)\n\n\n')
-    
-    if args.basic:
-        writeFile.write(org.calcBasicInfo())
-    if args.usable:
-        writeFile.write(org.calcUsableAmounts())
-    if args.scrap:
-        writeFile.write(org.calcScrapAmounts())
-    if args.all or not (args.basic and args.usable and args.scrap):
-        writeFile.write(org.calcBasicInfo())
-        writeFile.write(org.calcUsableAmounts())
-        writeFile.write(org.calcScrapAmounts())
-
-# org = StashOrganizer(1)
-# with open('Stash_Output.txt', 'w') as writeFile:
-#     writeFile.write(str(org.person + '\'s Stash\n').upper())
-#     writeFile.write('\n(Note: SCRAP items are leftover bits of yarn with less than 25 grams left,\n'
-#                    '\t USABLE items are yarns with more than 25 grams in stash)\n\n\n')
-#     writeFile.write(org.calcBasicInfo())
-#     writeFile.write(org.calcUsableAmounts())
-#     writeFile.write(org.calcScrapAmounts())
-
-# arguments - 
-# --help    :   gives list of arguments
-# --update  :   updates stash data from Ravelry
-# -dump     :   dumps all stash data to json files in pretty json format
-# -basic    :   outputs basic information about your stash
-# -usable   :   outputs 'usable' yarn information (all yarn in stash over 25g)
-# -scraps   :   outputs 'scrap' yarn information (all yarn in stash under 25g)
-# -all      :   output all available stash information
+# Sends data to output as a text file
+if args.output_type == 'text' or args.output_type == 't':
+    basic = org.calcBasicInfo()
+    main = org.calcMainAmounts()
+    scrap = org.calcScrapAmounts()
+    disp.outputTextToFile(args.info_type, basic, main, scrap)
+# Sends data to output as a chart pdf
+elif args.output_type == 'chart' or args.output_type == 'charts' or args.output_type == 'c':
+    basic = org.calcBasicInfo()
+    main = org.calcMainAmounts()
+    scrap = org.calcScrapAmounts()
+    disp.outputChartsToFile(args.info_type, basic, main, scrap)
