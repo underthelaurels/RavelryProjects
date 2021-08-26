@@ -21,8 +21,9 @@ parser.add_argument("info_type", default="all", nargs='?',
                     "main" outputs info about yarn over 25g. 
                     "all" outputs all info about your stash.''')
 parser.add_argument("output_type", default="text", nargs='?',
-                    help='''the output type for the data - can either be "text" or "chart". 
-                    Can also be shortened to "t" or "c"''')
+                    help='''the output type for the data - 
+                    text file output - [text, t]. chart pdf output - [chart, charts, c]. 
+                    both file output types - [both, b, all]''')
 
 args = parser.parse_args()
 
@@ -30,14 +31,21 @@ org = StashOrganizer(args.dump, args.update)
 disp = DataDisplayer()
 
 # Sends data to output as a text file
-if args.output_type == 'text' or args.output_type == 't':
+if args.output_type in {'text', 't'}:
     basic = org.calcBasicInfo()
     main = org.calcMainAmounts()
     scrap = org.calcScrapAmounts()
     disp.outputTextToFile(args.info_type, basic, main, scrap)
 # Sends data to output as a chart pdf
-elif args.output_type == 'chart' or args.output_type == 'charts' or args.output_type == 'c':
+elif args.output_type in {'chart', 'charts', 'c'}:
     basic = org.calcBasicInfo()
     main = org.calcMainAmounts()
     scrap = org.calcScrapAmounts()
+    disp.outputChartsToFile(args.info_type, basic, main, scrap)
+# Sends data to output as both a text file and a chart pdf
+elif args.output_type in {'both', 'b', 'all'}:
+    basic = org.calcBasicInfo()
+    main = org.calcMainAmounts()
+    scrap = org.calcScrapAmounts()
+    disp.outputTextToFile(args.info_type, basic, main, scrap)
     disp.outputChartsToFile(args.info_type, basic, main, scrap)

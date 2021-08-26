@@ -308,7 +308,7 @@ class DataDisplayer:
                 writeFile.write(self.formatMainData(main))
             if type in {'scrap', 's', 'all', 'a'}:
                 writeFile.write(self.formatScrapData(scrap))
-        print("Wrote stash information to 'Stash_Output.txt'")
+        print("Wrote stash information to 'Stash_Output.txt'\n")
 
     '''
         Creates a pdf of charts based on the data parameters "basic, main, scrap"
@@ -332,4 +332,4 @@ class DataDisplayer:
                 scrapBarColor, scrapBarWeight = self.chartScrapData(scrap)
                 pdf.savefig(scrapBarColor)
                 pdf.savefig(scrapBarWeight)
-        print("Saved stash charts to 'Stash_Output.pdf'")
+        print("Saved stash charts to 'Stash_Output.pdf'\n")

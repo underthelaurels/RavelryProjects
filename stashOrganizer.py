@@ -26,7 +26,9 @@ class StashOrganizer:
             self.colors = self.fetchColorfams()
             self.weights = self.fetchYarnWeights()
             self.prettyDump('all')
-            print("Dumped raw ravelry stash data, colors, and weights to .json")
+        elif update:
+            print("Updating raw Ravelry stash json...")
+            self.prettyDump('stash')
 
     '''
         Fetch functions for getting Ravelry data
@@ -116,6 +118,24 @@ class StashOrganizer:
             washableCount
         ]
         return info
+
+    '''
+        Calculates yardage, grams, and stash item counts for
+        each yarn material type located in the main stash.
+        Returns a list of information
+    '''
+    def calcMaterialInfo(self):
+        pass
+        # TODO implement
+    
+    '''
+        Calculates stash item counts for each type of yarn
+        care (if available) located in the main stash.
+        Returns a dictionary of {yarn care type : stash item count}
+    '''
+    def calcWashableInfo(self):
+        pass
+        # TODO implement
 
     '''
         Calculates yardage, grams and stash item counts for
@@ -227,9 +247,12 @@ class StashOrganizer:
         if type == 'stash' or type == 'all':
             with open('stash_dump.json', 'w') as writeFile:
                 json.dump(self.stash, writeFile, indent=4)
+            print("Output raw Ravelry stash data to 'stash_dump.json'\n")
         if type == 'colors' or type == 'all':
             with open('color_dump.json', 'w') as writeFile:
                 json.dump(self.colors, writeFile, indent=4)
+            print("Output raw Ravelry color family data to 'color_dump.json'\n")
         if type == 'weights' or type == 'all':
             with open('weight_dump.json', 'w') as writeFile:
                 json.dump(self.weights, writeFile, indent=4)
+            print("Output raw Ravelry yarn weight data to 'weight_dump.json'\n")
