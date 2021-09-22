@@ -34,7 +34,7 @@ labelcolors = {
     Data includes stash item counts for each stash status type
     as well as machine washable data
 '''
-def formatBasicData(self, data):
+def formatBasicData(data):
     # format the data
     output = 'Basic Stash Info -'
     output += '\n\tTotal stash items: {}'.format(data[0])  # Total
@@ -54,7 +54,7 @@ def formatBasicData(self, data):
     for the main stash. The main stash is made up of stash items containing
     more than 25 grams of yarn.
 '''
-def formatMainData(self, data):
+def formatMainData(data):
     # pull everything out of data and name it all nice
     colorCounts = data[0]
     weightCounts = data[1]
@@ -69,6 +69,7 @@ def formatMainData(self, data):
     output = 'Main Yarn Amounts -'
     output += '\n\tTotal Grams/Yardage: ' + \
         '{:>6.0f} g,{:>6.0f} yds'.format(gramsTotal, yardTotal)
+    output += '\n\tThis is equivalent to {:.1f} miles of yarn!'.format(yardTotal/1760)
 
     output += '\n\n\tYarns/Grams/Yardage by Color:'
     for color in sorted(gramsByColor, key=gramsByColor.get, reverse=True):
@@ -91,16 +92,17 @@ def formatMainData(self, data):
     for stash scraps. Stash scraps are made up of stash items containing
     less than 25 grams of yarn.
 '''
-def formatScrapData(self, data):
+def formatScrapData(data):
     colorCounts = data[0]
     weightCounts = data[1]
-    yardTotals = data[2]
+    yardTotal = data[2]
     yardsByColor = data[3]
     yardsByWeight = data[4]
 
     # Format for printing/exporting
     output = 'Scrap Information -'
-    output += '\n\tTotal Yardage: {:.1f} yds'.format(yardTotals)
+    output += '\n\tTotal Yardage: {:.1f} yds'.format(yardTotal)
+    output += '\n\tThis is equivalent to {:.1f} miles of yarn!'.format(yardTotal/1760)
 
     output += '\n\n\tYarns/Yardage by Color:'
     for color in sorted(yardsByColor, key=yardsByColor.get, reverse=True):
@@ -124,7 +126,7 @@ def formatScrapData(self, data):
         the main 4 stash stash status types are [Main, Scraps, Used Up, Gifted]
     pieChart    - a pie chart representing makeup of machine washable yarns in the main stash
 '''
-def chartBasicData(self, data):
+def chartBasicData(data):
     # Bar graph: main, scraps, used up, gifted
     barGraph = plt.figure(1)
     heights = data[1:-1]
@@ -158,7 +160,7 @@ def chartBasicData(self, data):
     barColor    - a horizontal bar chart plotting gram amounts for each color group
     barWeight   - a horizontal bar chart plotting gram amounts for each yarn weight
 '''
-def chartMainData(self, data):
+def chartMainData(data):
     # pull everything out of data and name it all nice
     colorCounts = data[0]
     gramsByColor = data[6]
@@ -177,14 +179,14 @@ def chartMainData(self, data):
         # If the color percent is greater than 4%, add it normally to the pie chart
         if colorCounts[color] / total > 0.04:
             labels.append(color)
-            col.append(self.labelcolors[color])
+            col.append(labelcolors[color])
             values.append(colorCounts[color])
         else:
             other += colorCounts[color]
     # if the other count exists, add other to the chart
     if other > 0:
         labels.append('Other')
-        col.append(self.labelcolors['Other'])
+        col.append(labelcolors['Other'])
         values.append(other)
 
     plt.pie(values, labels=labels, labeldistance=1.05, colors=col, radius=1.2, autopct='%1.0f%%',
@@ -196,7 +198,7 @@ def chartMainData(self, data):
     #
     pieWeight = plt.figure(4)
 
-    weightColors = self.makePrettyColors(gramsByWeight)
+    weightColors = makePrettyColors(gramsByWeight)
     plt.pie(gramsByWeight.values(), labels=gramsByWeight.keys(), colors=weightColors, labeldistance=1.05,
             radius=1.2, autopct='%1.0f%%', pctdistance=0.85, wedgeprops={'linewidth': 1, 'edgecolor': 'white'})
     plt.title("Main Stash by Yarn Weight", y=1.05)
@@ -209,11 +211,11 @@ def chartMainData(self, data):
     height = []
     names = []
     col = []
-    for color in self.labelcolors.keys():
+    for color in labelcolors.keys():
         if gramsByColor[color] > 0:
             height.append(gramsByColor[color])
             names.append(color)
-            col.append(self.labelcolors[color])
+            col.append(labelcolors[color])
     yPos = numpy.arange(len(names))
     plt.barh(yPos, height, color=col)
     plt.gca().invert_yaxis()
@@ -243,7 +245,7 @@ def chartMainData(self, data):
     barColor    - a horizontal bar chart plotting scrap yardages for each color group
     barWeight   - a horizontal bar chart plotting scrap yardages for each yarn weight
 '''
-def chartScrapData(self, data):
+def chartScrapData(data):
     yardsByColor = data[3]
     yardsByWeight = data[4]
 
@@ -253,11 +255,11 @@ def chartScrapData(self, data):
     height = []
     names = []
     col = []
-    for color in self.labelcolors.keys():
+    for color in labelcolors.keys():
         if yardsByColor[color] > 0:
             height.append(yardsByColor[color])
             names.append(color)
-            col.append(self.labelcolors[color])
+            col.append(labelcolors[color])
     yPos = numpy.arange(len(names))
     plt.barh(yPos, height, color=col)
     plt.gca().invert_yaxis()
@@ -268,7 +270,7 @@ def chartScrapData(self, data):
     # Bar chart 2: weights by yardage
     barWeight = plt.figure(8)
     plt.title("Scrap Yarn Weights")
-    weightColors = self.makePrettyColors(yardsByWeight)
+    weightColors = makePrettyColors(yardsByWeight)
     names = yardsByWeight.keys()
     height = yardsByWeight.values()
     yPos = numpy.arange(len(names))
@@ -284,7 +286,7 @@ def chartScrapData(self, data):
     Helper to create a list of colors from a gradient to be used
     in a chart. Returns a list of colors
 '''
-def makePrettyColors(self, weightData):
+def makePrettyColors(weightData):
     weightColors = []
     map = plt.get_cmap('viridis', len(weightData.keys()))
     for x in range(len(weightData.keys()) - 1, -1, -1):
@@ -296,14 +298,14 @@ def makePrettyColors(self, weightData):
     data are chosen to be formatted and printed by the parameter "type"
     Prints to command line upon completion
 '''
-def outputTextToFile(self, type, basic, main, scrap):
+def outputTextToFile(type, basic, main, scrap):
     with open('Stash_Output.txt', 'w') as writeFile:
         if type in {'basic', 'b', 'all', 'a'}:
-            writeFile.write(self.formatBasicData(basic))
+            writeFile.write(formatBasicData(basic))
         if type in {'main', 'm', 'all', 'a'}:
-            writeFile.write(self.formatMainData(main))
+            writeFile.write(formatMainData(main))
         if type in {'scrap', 's', 'all', 'a'}:
-            writeFile.write(self.formatScrapData(scrap))
+            writeFile.write(formatScrapData(scrap))
     print("Wrote stash information to 'Stash_Output.txt'\n")
 
 '''
@@ -311,21 +313,21 @@ def outputTextToFile(self, type, basic, main, scrap):
     Charts are chosen to be printed by the parameter "type"
     Prints to command line upon completion
 '''
-def outputChartsToFile(self, type, basic, main, scrap):
+def outputChartsToFile(type, basic, main, scrap):
     with matplotlib.backends.backend_pdf.PdfPages("Stash_Output.pdf") as pdf:
         if type in {'basic', 'b', 'all', 'a'}:
-            basicBar, basicPie = self.chartBasicData(basic)
+            basicBar, basicPie = chartBasicData(basic)
             pdf.savefig(basicBar)
             pdf.savefig(basicPie)
         if type in {'main', 'm', 'all', 'a'}:
-            mainPieColor, mainPieWeight, mainBarColor, mainBarWeight = self.chartMainData(
+            mainPieColor, mainPieWeight, mainBarColor, mainBarWeight = chartMainData(
                 main)
             pdf.savefig(mainPieColor)
             pdf.savefig(mainPieWeight)
             pdf.savefig(mainBarColor)
             pdf.savefig(mainBarWeight)
         if type in {'scrap', 's', 'all', 'a'}:
-            scrapBarColor, scrapBarWeight = self.chartScrapData(scrap)
+            scrapBarColor, scrapBarWeight = chartScrapData(scrap)
             pdf.savefig(scrapBarColor)
             pdf.savefig(scrapBarWeight)
     print("Saved stash charts to 'Stash_Output.pdf'\n")

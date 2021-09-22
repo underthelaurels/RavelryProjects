@@ -27,23 +27,17 @@ parser.add_argument("output_type", default="text", nargs='?',
 args = parser.parse_args()
 
 org = stashOrganizer.StashOrganizer(args.dump, args.update)
+basic = org.calcBasicInfo()
+main = org.calcMainAmounts()
+scrap = org.calcScrapAmounts()
 
-# Sends data to output as a text file
 if args.output_type in {'text', 't'}:
-    basic = org.calcBasicInfo()
-    main = org.calcMainAmounts()
-    scrap = org.calcScrapAmounts()
+    # Sends data to output as a text file
     dataDisplayer.outputTextToFile(args.info_type, basic, main, scrap)
-# Sends data to output as a chart pdf
 elif args.output_type in {'chart', 'charts', 'c'}:
-    basic = org.calcBasicInfo()
-    main = org.calcMainAmounts()
-    scrap = org.calcScrapAmounts()
+    # Sends data to output as a chart pdf
     dataDisplayer.outputChartsToFile(args.info_type, basic, main, scrap)
-# Sends data to output as both a text file and a chart pdf
 elif args.output_type in {'both', 'b', 'all'}:
-    basic = org.calcBasicInfo()
-    main = org.calcMainAmounts()
-    scrap = org.calcScrapAmounts()
+    # Sends data to output as both a text file and a chart pdf
     dataDisplayer.outputTextToFile(args.info_type, basic, main, scrap)
     dataDisplayer.outputChartsToFile(args.info_type, basic, main, scrap)
