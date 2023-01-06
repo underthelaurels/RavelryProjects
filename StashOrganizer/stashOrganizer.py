@@ -139,10 +139,14 @@ class StashOrganizer:
 
     '''
         Calculates yardage, grams and stash item counts for
-        each color family and yarn weight located in the main stash.
+        each color family and yarn weight located in the main or scrap stash.
         Returns a list of information
     '''
-    def calcMainAmounts(self):
+    def calcAmounts(self, type):
+        if type == 'main':
+            type = self.main
+        else:
+            type = self.scraps
         colorCounts = DefaultDict(int)
         weightCounts = DefaultDict(int)
 
@@ -154,7 +158,7 @@ class StashOrganizer:
         gramsByColor = DefaultDict(float)
         gramsByWeight = DefaultDict(float)
 
-        for stashItem in self.main:
+        for stashItem in type:
             itemColor = stashItem['color_family_name']
             itemWeight = stashItem['yarn_weight_name']
             itemGrams = stashItem['packs'][1]['total_grams']
@@ -186,56 +190,31 @@ class StashOrganizer:
         return amounts
 
     '''
-        Calculates yardage info and stash item counts for
-        each color family and yarn weight located in the scrap stash.
-        Returns a list of information
-    '''
-    def calcScrapAmounts(self):
-        colorCounts = DefaultDict(int)
-        weightCounts = DefaultDict(int)
-
-        yardTotals = 0
-        yardsByColor = DefaultDict(float)
-        yardsByWeight = DefaultDict(float)
-
-        for stashItem in self.scraps:
-            colorCounts[stashItem['color_family_name']] += 1
-            weightCounts[stashItem['yarn_weight_name']] += 1
-
-            itemYards = stashItem['packs'][1]['total_yards']
-
-            yardTotals += itemYards
-            yardsByColor[stashItem['color_family_name']] += itemYards
-            yardsByWeight[stashItem['yarn_weight_name']] += itemYards
-
-        amounts = [
-            colorCounts,
-            weightCounts,
-            yardTotals,
-            yardsByColor,
-            yardsByWeight
-        ]
-        return amounts
-
-    '''
         Returns 2 lists of stash items - one of the stash scraps and
         one of the main stash
     '''
     def getScrapMainLists(self):
         scrapList = []
         mainList = []
-        # return a list of stash items considered 'scraps' (<25g of yarn and In Stash)
-        # and return a list of stash items considered 'non-scrap' or 'main' yarn (>= 25g of yarn and In Stash)
+        # return a list of stash items considered 'scraps' (taggged 'scraps or <40g of yarn and In Stash)
+        # and return a list of stash items considered 'non-scrap' or 'main' yarn (tagged 'usable' or >= 40g of yarn and In Stash)
         for stashItem in self.stash:
             # Check if listed as in stash
             if stashItem['stash_status']['id'] == 1:
-                # check if less than 25g of yarn
-                if (stashItem['packs'][1]['total_grams'] is not None and
-                        stashItem['packs'][1]['total_yards'] is not None and
-                        stashItem['packs'][1]['total_grams'] < 25):
-                    scrapList.append(stashItem)
-                else:
+                # check if item is tagged with 'usable' or 'scraps'
+                #print(stashItem['tag_names'])
+                if ('usable' in stashItem['tag_names']):
                     mainList.append(stashItem)
+                elif ('scraps' in stashItem['tag_names']):
+                    scrapList.append(stashItem)
+                # otherwise check if less than 40g of yarn
+                else:
+                    if (stashItem['packs'][1]['total_grams'] is not None and
+                            stashItem['packs'][1]['total_yards'] is not None and
+                            stashItem['packs'][1]['total_grams'] < 40):
+                        scrapList.append(stashItem)
+                    else:
+                        mainList.append(stashItem)
         return scrapList, mainList
 
     '''

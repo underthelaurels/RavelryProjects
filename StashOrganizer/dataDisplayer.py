@@ -35,7 +35,6 @@ labelcolors = {
     as well as machine washable data
 '''
 def formatBasicData(data):
-    # format the data
     output = 'Basic Stash Info -'
     output += '\n\tTotal stash items: {}'.format(data[0])  # Total
     output += '\n\tMain: {}'.format(data[1])  # Main yarn
@@ -50,11 +49,9 @@ def formatBasicData(data):
 
 '''
     Formats input data into a return string.
-    Data includes yardage, grams, colors, weight, and stash item amounts
-    for the main stash. The main stash is made up of stash items containing
-    more than 25 grams of yarn.
+    Data includes yardage, grams, colors, weight, and stash item amounts.
 '''
-def formatMainData(data):
+def formatData(data):
     # pull everything out of data and name it all nice
     colorCounts = data[0]
     weightCounts = data[1]
@@ -66,8 +63,7 @@ def formatMainData(data):
     gramsByWeight = data[7]
 
     # Format for printing/exporting
-    output = 'Main Yarn Amounts -'
-    output += '\n\tTotal Grams/Yardage: ' + \
+    output = '\n\tTotal Grams/Yardage: ' + \
         '{:>6.0f} g,{:>6.0f} yds'.format(gramsTotal, yardTotal)
     output += '\n\tThis is equivalent to {:.1f} miles of yarn!'.format(yardTotal/1760)
 
@@ -82,39 +78,6 @@ def formatMainData(data):
         s = '\n\t\t{:<16}-{:>4} yarns,{:>6.0f} g,{:>6.0f} yds'
         output += s.format(weight, weightCounts[weight],
                             gramsByWeight[weight], yardsByWeight[weight])
-
-    output += '\n\n\n'
-    return output
-
-'''
-    Formats input data into a return string.
-    Data includes yardage, colors, weight, and stash item amounts
-    for stash scraps. Stash scraps are made up of stash items containing
-    less than 25 grams of yarn.
-'''
-def formatScrapData(data):
-    colorCounts = data[0]
-    weightCounts = data[1]
-    yardTotal = data[2]
-    yardsByColor = data[3]
-    yardsByWeight = data[4]
-
-    # Format for printing/exporting
-    output = 'Scrap Information -'
-    output += '\n\tTotal Yardage: {:.1f} yds'.format(yardTotal)
-    output += '\n\tThis is equivalent to {:.1f} miles of yarn!'.format(yardTotal/1760)
-
-    output += '\n\n\tYarns/Yardage by Color:'
-    for color in sorted(yardsByColor, key=yardsByColor.get, reverse=True):
-        s = '\n\t\t{:<14}-{:>4} yarns,{:>8.1f} yds'
-        output += s.format(str(color),
-                            colorCounts[color], yardsByColor[color])
-
-    output += '\n\n\tYarns/Yardage by Weight:'
-    for weight in yardsByWeight:
-        s = '\n\t\t{:<16}-{:>4} yarns,{:>8.1f} yds'
-        output += s.format(weight,
-                            weightCounts[weight], yardsByWeight[weight])
 
     output += '\n\n\n'
     return output
@@ -144,7 +107,7 @@ def chartBasicData(data):
 
     # Pie chart: machine washable percentage
     pieChart = plt.figure(2)
-    plt.pie([data[-1], data[0]-data[-1]], labels=('Machine Washable', 'Not'), autopct='%1.0f%%',
+    plt.pie([data[-1], data[1]-data[-1]], labels=('Machine Washable', 'Not'), autopct='%1.0f%%',
             radius=1.2, wedgeprops={'linewidth': 1, 'edgecolor': 'white'})
     plt.title('Machine Washable Yarns', y=1.05)
     plt.axis('off')
@@ -303,9 +266,9 @@ def outputTextToFile(type, basic, main, scrap):
         if type in {'basic', 'b', 'all', 'a'}:
             writeFile.write(formatBasicData(basic))
         if type in {'main', 'm', 'all', 'a'}:
-            writeFile.write(formatMainData(main))
+            writeFile.write('Main Stash Information -' + formatData(main))
         if type in {'scrap', 's', 'all', 'a'}:
-            writeFile.write(formatScrapData(scrap))
+            writeFile.write('Scrap Information -' + formatData(scrap))
     print("Wrote stash information to 'Stash_Output.txt'\n")
 
 '''

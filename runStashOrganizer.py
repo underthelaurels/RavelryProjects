@@ -28,8 +28,8 @@ args = parser.parse_args()
 
 org = stashOrganizer.StashOrganizer(args.dump, args.update)
 basic = org.calcBasicInfo()
-main = org.calcMainAmounts()
-scrap = org.calcScrapAmounts()
+main = org.calcAmounts('main')
+scrap = org.calcAmounts('scrap')
 
 if args.output_type in {'text', 't'}:
     # Sends data to output as a text file
